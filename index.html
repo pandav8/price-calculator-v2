@@ -155,10 +155,6 @@
                 <input type="number" id="platformFee" min="0" max="100" step="0.01" value="20" ondblclick="this.value=''">
             </div>
             <div class="input-group">
-                <label for="profitMargin">目标利润率 (%)</label>
-                <input type="number" id="profitMargin" min="0" max="100" step="0.01" value="20" ondblclick="this.value=''">
-            </div>
-            <div class="input-group">
                 <label for="manualShippingType">手动选择物流方案</label>
                 <select id="manualShippingType" onchange="calculatePrice()">
                     <option value="">自动选择</option>
@@ -187,7 +183,6 @@
             <li>输入商品采购价格（人民币）</li>
             <li>输入商品重量（克）</li>
             <li>设置平台佣金（百分比）</li>
-            <li>设置目标利润率（百分比）</li>
             <li>结果将自动更新</li>
         </ol>
     </div>
@@ -279,7 +274,6 @@
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
             const weight = parseFloat(document.getElementById('weight').value) || 0;
             const platformFee = parseFloat(document.getElementById('platformFee').value) || 20;
-            const profitMargin = parseFloat(document.getElementById('profitMargin').value) || 20;
 
             // 根据价格和重量确定物流方案
             const manualShippingType = document.getElementById('manualShippingType').value;
@@ -293,13 +287,9 @@
             const actualProfit = sellingPrice - totalCost;
             const actualProfitMargin = (actualProfit / sellingPrice) * 100;
 
-            // 计算建议价格
-            const suggestedPrice = totalCost * (1 + profitMargin / 100);
-
             // 显示结果
             const results = document.getElementById('results');
             results.innerHTML = `
-                <div class="result-item">建议价格: <span class="suggested-price">¥${suggestedPrice.toFixed(2)}</span></div>
                 <div class="result-item">商品重量: ${weight.toFixed(2)} g</div>
                 <div class="result-item">适用物流方案: ${shippingTypeName}</div>
                 <div class="result-item">物流费用: ¥${totalShippingCost.toFixed(2)}</div>
