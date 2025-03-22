@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>诚誉跨境定价计算器</title>
+    <title>PANDA发发发</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,10 +82,84 @@
             background-color: #e9ecef;
             border-radius: 4px;
         }
+        /* 添加标题和汇率显示样式 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .exchange-rate {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #666;
+            display: inline-block;
+        }
+        .exchange-rate span {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        /* 添加汇率转换器样式 */
+        .converter {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .converter h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .converter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .converter-input {
+            flex: 1;
+            margin: 0;
+        }
+        .converter-input input {
+            width: 100%;
+            padding: 5px;
+        }
+        .converter-select {
+            width: 120px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            margin: 0 10px;
+        }
+        .result-display {
+            background: white;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+        }
+        .currency-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 2px;
+        }
     </style>
 </head>
 <body>
-    <h1>诚誉跨境定价计算器</h1>
+    <div class="header">
+        <h1><span style="color: red;">PANDA</span>发发发</h1>
+        <div class="exchange-rate">
+            当前卢布汇率: <span id="rubRate">加载中...</span>
+            <br>
+            <small>最后更新时间: <span id="lastUpdate">-</span></small>
+        </div>
+    </div>
     <div class="container">
         <div class="input-section">
             <h2>基础信息</h2>
@@ -121,6 +195,23 @@
                     <option value="highBig">高客单大件 (5000-25000g)</option>
                 </select>
             </div>
+            <div class="input-group">
+                <h3>货币换算</h3>
+                <div class="converter">
+                    <div class="converter-row">
+                        <div class="converter-input">
+                            <input type="number" id="cnyAmount" min="0" step="0.01" value="0" placeholder="输入金额">
+                        </div>
+                        <select id="currencyType" class="converter-select" onchange="convertCurrency()">
+                            <option value="cny">人民币 → 卢布</option>
+                            <option value="rub">卢布 → 人民币</option>
+                        </select>
+                        <div class="converter-input">
+                            <div id="convertedAmount" class="result-display">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="result-section">
             <h2>计算结果</h2>
@@ -149,19 +240,24 @@
         });
 
         function getShippingType(price, weight) {
-            if (price <= 120) {
+            // 获取当前汇率
+            const rubRate = parseFloat(localStorage.getItem('rubRate')) || 12.5;
+            // 将价格转换为卢布
+            const priceInRub = price * rubRate;
+            
+            if (priceInRub <= 1700) {
                 if (weight >= 0.1 && weight <= 500) {
                     return 'superLight';
                 } else if (weight >= 0.1 && weight <= 25000) {
                     return 'lowBig';
                 }
-            } else if (price <= 600) {
+            } else if (priceInRub <= 7700) {
                 if (weight >= 0.1 && weight <= 2000) {
                     return 'mediumSmall';
                 } else if (weight >= 2000 && weight <= 25000) {
                     return 'mediumBig';
                 }
-            } else {
+            } else if (priceInRub <= 250000) {
                 if (weight >= 0.1 && weight <= 5000) {
                     return 'highSmall';
                 } else if (weight >= 5000 && weight <= 25000) {
@@ -184,49 +280,125 @@
         }
 
         function calculateShippingCost(weight, type) {
+            // 计算人民币价格
+            let cnyPrice = 0;
             switch(type) {
                 case 'superLight':
                     if (weight >= 0.1 && weight <= 500) {
-                        return weight * 0.025 + 3;
+                        cnyPrice = weight * 0.025 + 3;
                     }
-                    return 0;
+                    break;
                 case 'lowBig':
                     if (weight >= 0.1 && weight <= 25000) {
-                        return weight * 0.017 + 23;
+                        cnyPrice = weight * 0.017 + 23;
                     }
-                    return 0;
+                    break;
                 case 'mediumSmall':
                     if (weight >= 0.1 && weight <= 2000) {
-                        return weight * 0.025 + 16;
+                        cnyPrice = weight * 0.025 + 16;
                     }
-                    return 0;
+                    break;
                 case 'mediumBig':
                     if (weight >= 2000 && weight <= 25000) {
-                        return weight * 0.017 + 36;
+                        cnyPrice = weight * 0.017 + 36;
                     }
-                    return 0;
+                    break;
                 case 'highSmall':
                     if (weight >= 0.1 && weight <= 5000) {
-                        return weight * 0.025 + 22;
+                        cnyPrice = weight * 0.025 + 22;
                     }
-                    return 0;
+                    break;
                 case 'highBig':
                     if (weight >= 5000 && weight <= 25000) {
-                        return weight * 0.023 + 62;
+                        cnyPrice = weight * 0.023 + 62;
                     }
-                    return 0;
-                default:
-                    return 0;
+                    break;
+            }
+            return cnyPrice;
+        }
+
+        // 添加汇率更新函数
+        async function updateExchangeRate() {
+            try {
+                const response = await fetch('https://v6.exchangerate-api.com/v6/61bced9bfb6c35fac9ed176b/latest/CNY');
+                const data = await response.json();
+                const rubRate = data.conversion_rates.RUB;
+                document.getElementById('rubRate').textContent = `1 CNY = ${rubRate.toFixed(4)} RUB`;
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+                
+                // 将汇率保存到 localStorage
+                localStorage.setItem('rubRate', rubRate);
+                localStorage.setItem('lastUpdate', new Date().toISOString());
+            } catch (error) {
+                console.error('获取汇率失败:', error);
+                // 如果获取失败，尝试使用本地存储的汇率
+                const savedRate = localStorage.getItem('rubRate');
+                if (savedRate) {
+                    document.getElementById('rubRate').textContent = `1 CNY = ${parseFloat(savedRate).toFixed(4)} RUB`;
+                    const lastUpdate = new Date(localStorage.getItem('lastUpdate'));
+                    document.getElementById('lastUpdate').textContent = lastUpdate.toLocaleString();
+                } else {
+                    document.getElementById('rubRate').textContent = '获取失败';
+                }
             }
         }
 
+        // 页面加载时更新汇率
+        document.addEventListener('DOMContentLoaded', () => {
+            updateExchangeRate();
+            
+            // 计算距离下次更新时间的时间
+            function getNextUpdateTime() {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinutes = now.getMinutes();
+                
+                // 设置目标时间点（12:00 和 18:00）
+                const targetHours = [12, 18];
+                
+                // 找到下一个更新时间点
+                let nextHour = targetHours.find(hour => hour > currentHour) || targetHours[0];
+                let nextDate = new Date(now);
+                
+                // 如果当前时间已经过了今天的目标时间点，设置为明天的目标时间点
+                if (nextHour <= currentHour) {
+                    nextDate.setDate(nextDate.getDate() + 1);
+                }
+                
+                nextDate.setHours(nextHour, 0, 0, 0);
+                return nextDate;
+            }
+            
+            // 设置定时器
+            function scheduleNextUpdate() {
+                const nextUpdate = getNextUpdateTime();
+                const timeUntilUpdate = nextUpdate - new Date();
+                
+                // 设置定时器
+                setTimeout(() => {
+                    updateExchangeRate();
+                    scheduleNextUpdate(); // 重新调度下一次更新
+                }, timeUntilUpdate);
+                
+                // 更新显示的下次更新时间
+                const lastUpdateElement = document.getElementById('lastUpdate');
+                lastUpdateElement.innerHTML = `最后更新时间: ${new Date().toLocaleString()}<br>下次更新时间: ${nextUpdate.toLocaleString()}`;
+            }
+            
+            // 启动定时器
+            scheduleNextUpdate();
+        });
+
+        // 修改计算函数
         function calculatePrice() {
-            // 获取输入值
             const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
             const weight = parseFloat(document.getElementById('weight').value) || 0;
             const platformFee = parseFloat(document.getElementById('platformFee').value) || 20;
             const profitMargin = parseFloat(document.getElementById('profitMargin').value) || 20;
+
+            // 获取当前汇率（仅用于显示卢布价格）
+            const rubRate = parseFloat(localStorage.getItem('rubRate')) || 12.5;
 
             // 根据价格和重量确定物流方案
             const manualShippingType = document.getElementById('manualShippingType').value;
@@ -252,8 +424,9 @@
                 <div class="result-item">物流费用: ¥${totalShippingCost.toFixed(2)}</div>
                 <div class="result-item">平台佣金: ¥${platformAmount.toFixed(2)}</div>
                 <div class="result-item">总成本: ¥${totalCost.toFixed(2)}</div>
-                <div class="result-item">利润: <span class="profit">¥${actualProfit.toFixed(2)}</span></div>
-                <div class="result-item">实际利润率: <span class="${actualProfitMargin >= 18 ? 'high-margin' : ''}">${actualProfitMargin.toFixed(2)}%</span></div>
+                <div class="result-item">实际利润: <span class="profit">¥${actualProfit.toFixed(2)}</span></div>
+                <div class="result-item">实际利润率: ${actualProfitMargin >= 15 ? `<span class="high-margin">${actualProfitMargin.toFixed(2)}%</span>` : `${actualProfitMargin.toFixed(2)}%`}</div>
+                <div class="result-item">卢布价格: ${(suggestedPrice * rubRate).toFixed(2)} ₽</div>
             `;
         }
 
@@ -262,6 +435,24 @@
                 element.value = '';
             }
         }
+
+        // 修改货币转换函数
+        function convertCurrency() {
+            const rubRate = parseFloat(localStorage.getItem('rubRate')) || 12.5;
+            const amount = parseFloat(document.getElementById('cnyAmount').value) || 0;
+            const type = document.getElementById('currencyType').value;
+            
+            if (type === 'cny') {
+                const rubAmount = amount * rubRate;
+                document.getElementById('convertedAmount').textContent = `${rubAmount.toFixed(2)} ₽`;
+            } else {
+                const cnyAmount = amount / rubRate;
+                document.getElementById('convertedAmount').textContent = `¥${cnyAmount.toFixed(2)}`;
+            }
+        }
+
+        // 为输入框添加实时转换
+        document.getElementById('cnyAmount').addEventListener('input', convertCurrency);
     </script>
 </body>
 </html> 
