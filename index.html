@@ -19,13 +19,51 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 1000px;
+            position: relative;
+        }
+        .logo-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 10px;
+            width: 400px;
+            text-align: center;
+            background: transparent;
+        }
+        .logo {
+            width: 400px;
+            height: auto;
+            background: transparent;
         }
         .input-section, .result-section {
             flex: 1;
             padding: 20px;
         }
+        .input-section {
+            margin-top: 360px;
+        }
+        .result-section {
+            margin-top: 360px;
+        }
+        .header-with-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            min-height: 40px;
+            position: relative;
+        }
+        h2 {
+            margin: 0;
+            padding: 0;
+            font-size: 18px;
+            line-height: 40px;
+            display: flex;
+            align-items: center;
+        }
         .input-group {
             margin-bottom: 15px;
+            margin-top: 20px;
         }
         label {
             display: block;
@@ -52,20 +90,34 @@
             background-color: #45a049;
         }
         .result-item {
-            margin-bottom: 10px;
-            padding: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
             background-color: #f8f9fa;
             border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .profit {
             color: red;
+            font-size: 1.4em;
+            font-weight: bold;
         }
         .high-margin {
             color: red;
             font-size: 1.2em;
             font-weight: bold;
         }
+        .suggested-price {
+            color: purple;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
         h1, h2 {
+            color: #333;
+        }
+        .title-red {
+            color: red;
+        }
+        .title-black {
             color: #333;
         }
         .instructions {
@@ -77,11 +129,16 @@
     </style>
 </head>
 <body>
-    <h1>诚誉跨境定价计算器</h1>
+    <h1><span class="title-red">诚誉跨境</span><span class="title-black">定价计算器</span></h1>
     <div class="container">
+        <div class="logo-container">
+            <img src="WechatIMG371.jpg" alt="诚誉跨境" class="logo">
+        </div>
         <div class="input-section">
-            <h2>基础信息</h2>
             <div class="input-group">
+                <div class="header-with-logo">
+                    <h2>基础信息</h2>
+                </div>
                 <label for="sellingPrice">卖价 (CNY)</label>
                 <input type="number" id="sellingPrice" min="0" step="0.01" value="0" ondblclick="this.value=''">
             </div>
@@ -115,8 +172,12 @@
             </div>
         </div>
         <div class="result-section">
-            <h2>计算结果</h2>
-            <div id="results"></div>
+            <div class="input-group">
+                <div class="header-with-logo">
+                    <h2>计算结果</h2>
+                </div>
+                <div id="results"></div>
+            </div>
         </div>
     </div>
     <div class="instructions">
@@ -232,10 +293,13 @@
             const actualProfit = sellingPrice - totalCost;
             const actualProfitMargin = (actualProfit / sellingPrice) * 100;
 
+            // 计算建议价格
+            const suggestedPrice = totalCost * (1 + profitMargin / 100);
+
             // 显示结果
             const results = document.getElementById('results');
             results.innerHTML = `
-                <div class="result-item">商品卖价: ¥${sellingPrice.toFixed(2)}</div>
+                <div class="result-item">建议价格: <span class="suggested-price">¥${suggestedPrice.toFixed(2)}</span></div>
                 <div class="result-item">商品重量: ${weight.toFixed(2)} g</div>
                 <div class="result-item">适用物流方案: ${shippingTypeName}</div>
                 <div class="result-item">物流费用: ¥${totalShippingCost.toFixed(2)}</div>
