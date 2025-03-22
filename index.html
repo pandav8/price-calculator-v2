@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诚誉跨境定价计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .input-section, .result-section {
+            flex: 1;
+            padding: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .profit {
+            color: red;
+        }
+        .high-margin {
+            color: red;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>诚誉跨境定价计算器</h1>
+    <div class="container">
+        <div class="input-section">
+            <h2>基础信息</h2>
+            <div class="input-group">
+                <label for="sellingPrice">卖价 (CNY)</label>
+                <input type="number" id="sellingPrice" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="purchasePrice">采购价格 (CNY)</label>
+                <input type="number" id="purchasePrice" min="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="weight">商品重量 (g)</label>
+                <input type="number" id="weight" min="0.1" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="platformFee">平台佣金 (%)</label>
+                <input type="number" id="platformFee" min="0" max="100" step="0.01" value="20">
+            </div>
+            <div class="input-group">
+                <label for="profitMargin">目标利润率 (%)</label>
+                <input type="number" id="profitMargin" min="0" max="100" step="0.01" value="20">
+            </div>
+            <div class="input-group">
+                <label for="manualShippingType">手动选择物流方案</label>
+                <select id="manualShippingType" onchange="calculatePrice()">
+                    <option value="">自动选择</option>
+                    <option value="superLight">超级轻小件 (0.1-500g)</option>
+                    <option value="lowBig">低客单大件 (0.1-25000g)</option>
+                    <option value="mediumSmall">中客单小件 (0.1-2000g)</option>
+                    <option value="mediumBig">中客单大件 (2000-25000g)</option>
+                    <option value="highSmall">高客单小件 (0.1-5000g)</option>
+                    <option value="highBig">高客单大件 (5000-25000g)</option>
+                </select>
+            </div>
+        </div>
+        <div class="result-section">
+            <h2>计算结果</h2>
+            <div id="results"></div>
+        </div>
+    </div>
+    <div class="instructions">
+        <h2>使用说明</h2>
+        <ol>
+            <li>输入商品卖价（人民币）</li>
+            <li>输入商品采购价格（人民币）</li>
+            <li>输入商品重量（克）</li>
+            <li>设置平台佣金（百分比）</li>
+            <li>设置目标利润率（百分比）</li>
+            <li>结果将自动更新</li>
+        </ol>
+    </div>
+
+    <script>
+        // 为所有输入框添加实时计算事件
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', calculatePrice);
+            });
+        });
+
+        function getShippingType(price, weight) {
+            if (price <= 120) {
+                if (weight >= 0.1 && weight <= 500) {
+                    return 'superLight';
+                } else if (weight >= 0.1 && weight <= 25000) {
+                    return 'lowBig';
+                }
+            } else if (price <= 600) {
+                if (weight >= 0.1 && weight <= 2000) {
+                    return 'mediumSmall';
+                } else if (weight >= 2000 && weight <= 25000) {
+                    return 'mediumBig';
+                }
+            } else {
+                if (weight >= 0.1 && weight <= 5000) {
+                    return 'highSmall';
+                } else if (weight >= 5000 && weight <= 25000) {
+                    return 'highBig';
+                }
+            }
+            return null;
+        }
+
+        function getShippingTypeName(type) {
+            switch(type) {
+                case 'superLight': return '超级轻小件 (0.1-500g)';
+                case 'lowBig': return '低客单大件 (0.1-25000g)';
+                case 'mediumSmall': return '中客单小件 (0.1-2000g)';
+                case 'mediumBig': return '中客单大件 (2000-25000g)';
+                case 'highSmall': return '高客单小件 (0.1-5000g)';
+                case 'highBig': return '高客单大件 (5000-25000g)';
+                default: return '不适用';
+            }
+        }
+
+        function calculateShippingCost(weight, type) {
+            switch(type) {
+                case 'superLight':
+                    if (weight >= 0.1 && weight <= 500) {
+                        return weight * 0.025 + 3;
+                    }
+                    return 0;
+                case 'lowBig':
+                    if (weight >= 0.1 && weight <= 25000) {
+                        return weight * 0.017 + 23;
+                    }
+                    return 0;
+                case 'mediumSmall':
+                    if (weight >= 0.1 && weight <= 2000) {
+                        return weight * 0.025 + 16;
+                    }
+                    return 0;
+                case 'mediumBig':
+                    if (weight >= 2000 && weight <= 25000) {
+                        return weight * 0.017 + 36;
+                    }
+                    return 0;
+                case 'highSmall':
+                    if (weight >= 0.1 && weight <= 5000) {
+                        return weight * 0.025 + 22;
+                    }
+                    return 0;
+                case 'highBig':
+                    if (weight >= 5000 && weight <= 25000) {
+                        return weight * 0.023 + 62;
+                    }
+                    return 0;
+                default:
+                    return 0;
+            }
+        }
+
+        function calculatePrice() {
+            // 获取输入值
+            const sellingPrice = parseFloat(document.getElementById('sellingPrice').value) || 0;
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const platformFee = parseFloat(document.getElementById('platformFee').value) || 20;
+            const profitMargin = parseFloat(document.getElementById('profitMargin').value) || 20;
+
+            // 根据价格和重量确定物流方案
+            const manualShippingType = document.getElementById('manualShippingType').value;
+            const shippingType = manualShippingType || getShippingType(sellingPrice, weight);
+            const shippingTypeName = getShippingTypeName(shippingType);
+
+            // 计算
+            const totalShippingCost = calculateShippingCost(weight, shippingType);
+            const platformAmount = sellingPrice * (platformFee / 100);
+            const totalCost = purchasePrice + totalShippingCost + platformAmount;
+            const actualProfit = sellingPrice - totalCost;
+            const actualProfitMargin = (actualProfit / sellingPrice) * 100;
+
+            // 显示结果
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="result-item">商品卖价: ¥${sellingPrice.toFixed(2)}</div>
+                <div class="result-item">商品重量: ${weight.toFixed(2)} g</div>
+                <div class="result-item">适用物流方案: ${shippingTypeName}</div>
+                <div class="result-item">物流费用: ¥${totalShippingCost.toFixed(2)}</div>
+                <div class="result-item">平台佣金: ¥${platformAmount.toFixed(2)}</div>
+                <div class="result-item">总成本: ¥${totalCost.toFixed(2)}</div>
+                <div class="result-item">利润: <span class="profit">¥${actualProfit.toFixed(2)}</span></div>
+                <div class="result-item">实际利润率: <span class="${actualProfitMargin >= 18 ? 'high-margin' : ''}">${actualProfitMargin.toFixed(2)}%</span></div>
+            `;
+        }
+    </script>
+</body>
+</html> 
