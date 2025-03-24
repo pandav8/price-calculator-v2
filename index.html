@@ -165,23 +165,23 @@
             <h2>基础信息</h2>
             <div class="input-group">
                 <label for="sellingPrice">卖价 (CNY)</label>
-                <input type="number" id="sellingPrice" min="0" step="0.01" value="0" ondblclick="this.value=''">
+                <input type="number" id="sellingPrice" min="0" step="0.01" value="0" onclick="this.value=''">
             </div>
             <div class="input-group">
                 <label for="purchasePrice">采购价格 (CNY)</label>
-                <input type="number" id="purchasePrice" min="0" step="0.01" value="0" ondblclick="this.value=''">
+                <input type="number" id="purchasePrice" min="0" step="0.01" value="0" onclick="this.value=''">
             </div>
             <div class="input-group">
                 <label for="weight">商品重量 (g)</label>
-                <input type="number" id="weight" min="0.1" step="0.01" value="0.1" ondblclick="this.value=''">
+                <input type="number" id="weight" min="0.1" step="0.01" value="0.1" onclick="this.value=''">
             </div>
             <div class="input-group">
                 <label for="platformFee">平台佣金 (%)</label>
-                <input type="number" id="platformFee" min="0" max="100" step="0.01" value="20" ondblclick="this.value=''">
+                <input type="number" id="platformFee" min="0" max="100" step="0.01" value="20" onclick="this.value=''">
             </div>
             <div class="input-group">
                 <label for="profitMargin">目标利润率 (%)</label>
-                <input type="number" id="profitMargin" min="0" max="100" step="0.01" value="20" ondblclick="this.value=''">
+                <input type="number" id="profitMargin" min="0" max="100" step="0.01" value="20" onclick="this.value=''">
             </div>
             <div class="input-group">
                 <label for="manualShippingType">手动选择物流方案</label>
@@ -345,27 +345,30 @@
 
         // 页面加载时更新汇率
         document.addEventListener('DOMContentLoaded', () => {
-            updateExchangeRate();
+            // 检查是否需要更新汇率
+            const lastUpdate = localStorage.getItem('lastUpdate');
+            const now = new Date();
+            
+            if (!lastUpdate) {
+                // 首次加载，更新汇率
+                updateExchangeRate();
+            } else {
+                // 使用保存的汇率
+                const savedRate = localStorage.getItem('rubRate');
+                if (savedRate) {
+                    document.getElementById('rubRate').textContent = `1 CNY = ${parseFloat(savedRate).toFixed(4)} RUB`;
+                    document.getElementById('lastUpdate').textContent = new Date(lastUpdate).toLocaleString();
+                }
+            }
             
             // 计算距离下次更新时间的时间
             function getNextUpdateTime() {
                 const now = new Date();
                 const currentHour = now.getHours();
-                const currentMinutes = now.getMinutes();
                 
-                // 设置目标时间点（12:00 和 18:00）
-                const targetHours = [12, 18];
-                
-                // 找到下一个更新时间点
-                let nextHour = targetHours.find(hour => hour > currentHour) || targetHours[0];
+                // 设置为下一个整点
                 let nextDate = new Date(now);
-                
-                // 如果当前时间已经过了今天的目标时间点，设置为明天的目标时间点
-                if (nextHour <= currentHour) {
-                    nextDate.setDate(nextDate.getDate() + 1);
-                }
-                
-                nextDate.setHours(nextHour, 0, 0, 0);
+                nextDate.setHours(currentHour + 1, 0, 0, 0);
                 return nextDate;
             }
             
