@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PANDA发发发</title>
+    <title>跨境定价计算器</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,10 +19,21 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
         }
         .input-section, .result-section {
             flex: 1;
             padding: 20px;
+        }
+        .input-section {
+            padding-top: 10px;  /* 减少顶部内边距，使整体向上移动 */
+        }
+        .result-section {
+            padding-top: 10px;  /* 与input-section保持一致 */
+        }
+        .input-section h2, .result-section h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
         }
         .input-group {
             margin-bottom: 15px;
@@ -38,6 +49,15 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
+        }
+        /* 隐藏所有数字输入框的上下箭头 */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
         }
         button {
             background-color: #4CAF50;
@@ -90,16 +110,23 @@
             margin-bottom: 20px;
         }
         .exchange-rate {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             background: #f8f9fa;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 0.9em;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.7em;
             color: #666;
             display: inline-block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         .exchange-rate span {
             font-weight: bold;
             color: #2c3e50;
+        }
+        .exchange-rate small {
+            font-size: 0.9em;
         }
         /* 添加汇率转换器样式 */
         .converter {
@@ -115,25 +142,43 @@
         }
         .converter-row {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
             gap: 10px;
+            margin-bottom: 10px;
         }
-        .converter-input {
+        .currency-box {
             flex: 1;
-            margin: 0;
-        }
-        .converter-input input {
-            width: 100%;
-            padding: 5px;
-        }
-        .converter-select {
-            width: 120px;
-            padding: 5px;
             border: 1px solid #ddd;
             border-radius: 4px;
             background: white;
-            margin: 0 10px;
+            padding: 8px;
+        }
+        .currency-select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            color: #333;
+            padding: 4px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        .currency-input {
+            width: 100%;
+            border: none;
+            font-size: 18px;
+            padding: 2px;
+            outline: none;
+        }
+        .currency-input:focus {
+            outline: none;
+        }
+        .exchange-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            font-size: 20px;
+            color: #666;
         }
         .result-display {
             background: white;
@@ -149,18 +194,18 @@
             color: #666;
             margin-bottom: 2px;
         }
+        #results {
+            margin-top: 40px;  /* 从20px增加到40px */
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1><span style="color: red;">PANDA</span>发发发</h1>
+    <div class="container">
         <div class="exchange-rate">
             当前卢布汇率: <span id="rubRate">加载中...</span>
             <br>
             <small>最后更新时间: <span id="lastUpdate">-</span></small>
         </div>
-    </div>
-    <div class="container">
         <div class="input-section">
             <h2>基础信息</h2>
             <div class="input-group">
@@ -199,15 +244,24 @@
                 <h3>货币换算</h3>
                 <div class="converter">
                     <div class="converter-row">
-                        <div class="converter-input">
-                            <input type="number" id="cnyAmount" min="0" step="0.01" value="0" placeholder="输入金额">
+                        <div class="currency-box">
+                            <select class="currency-select" id="fromCurrency" onchange="convertCurrency('from')">
+                                <option value="cny">CNY ¥ - 人民币</option>
+                                <option value="rub">RUB ₽ - 卢布</option>
+                            </select>
+                            <input type="number" id="fromAmount" class="currency-input" value="0" placeholder="0" 
+                                oninput="convertCurrency('from')" 
+                                onclick="this.value=''; document.getElementById('toAmount').value='';">
                         </div>
-                        <select id="currencyType" class="converter-select" onchange="convertCurrency()">
-                            <option value="cny">人民币 → 卢布</option>
-                            <option value="rub">卢布 → 人民币</option>
-                        </select>
-                        <div class="converter-input">
-                            <div id="convertedAmount" class="result-display">0</div>
+                        <div class="exchange-icon">⇄</div>
+                        <div class="currency-box">
+                            <select class="currency-select" id="toCurrency" onchange="convertCurrency('to')">
+                                <option value="rub">RUB ₽ - 卢布</option>
+                                <option value="cny">CNY ¥ - 人民币</option>
+                            </select>
+                            <input type="number" id="toAmount" class="currency-input" value="0" placeholder="0" 
+                                oninput="convertCurrency('to')" 
+                                onclick="this.value=''; document.getElementById('fromAmount').value='';">
                         </div>
                     </div>
                 </div>
@@ -440,22 +494,60 @@
         }
 
         // 修改货币转换函数
-        function convertCurrency() {
+        function convertCurrency(direction = 'from') {
             const rubRate = parseFloat(localStorage.getItem('rubRate')) || 12.5;
-            const amount = parseFloat(document.getElementById('cnyAmount').value) || 0;
-            const type = document.getElementById('currencyType').value;
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
             
-            if (type === 'cny') {
-                const rubAmount = amount * rubRate;
-                document.getElementById('convertedAmount').textContent = `${rubAmount.toFixed(2)} ₽`;
+            if (direction === 'from') {
+                const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+                let result = 0;
+                
+                if (fromCurrency === 'cny' && toCurrency === 'rub') {
+                    result = fromAmount * rubRate;
+                } else if (fromCurrency === 'rub' && toCurrency === 'cny') {
+                    result = fromAmount / rubRate;
+                } else {
+                    result = fromAmount;
+                }
+                
+                document.getElementById('toAmount').value = result.toFixed(2);
             } else {
-                const cnyAmount = amount / rubRate;
-                document.getElementById('convertedAmount').textContent = `¥${cnyAmount.toFixed(2)}`;
+                const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+                let result = 0;
+                
+                if (fromCurrency === 'cny' && toCurrency === 'rub') {
+                    result = toAmount / rubRate;
+                } else if (fromCurrency === 'rub' && toCurrency === 'cny') {
+                    result = toAmount * rubRate;
+                } else {
+                    result = toAmount;
+                }
+                
+                document.getElementById('fromAmount').value = result.toFixed(2);
             }
         }
 
-        // 为输入框添加实时转换
-        document.getElementById('cnyAmount').addEventListener('input', convertCurrency);
+        // 添加货币选择联动
+        document.getElementById('fromCurrency').addEventListener('change', function() {
+            const toCurrency = document.getElementById('toCurrency');
+            if (this.value === 'cny') {
+                toCurrency.value = 'rub';
+            } else {
+                toCurrency.value = 'cny';
+            }
+            convertCurrency('from');
+        });
+
+        document.getElementById('toCurrency').addEventListener('change', function() {
+            const fromCurrency = document.getElementById('fromCurrency');
+            if (this.value === 'cny') {
+                fromCurrency.value = 'rub';
+            } else {
+                fromCurrency.value = 'cny';
+            }
+            convertCurrency('to');
+        });
     </script>
 </body>
 </html> 
